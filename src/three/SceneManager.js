@@ -10,14 +10,18 @@ export default canvas => {
     width: window.innerWidth,
     height: window.innerHeight
   }
-  const scene = buildScene(); 
+
+  const scene = buildScene();
+
+  const center = new THREE.Vector3();
+
   const renderer = buildRender(screenDimensions);
-  const center = new THREE.Vector3(0, 0, 0);
   const camera = (new Camera(center)).build(screenDimensions);
   const sceneSubjects = createSceneSubjects(scene);
+
   function buildScene() {
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color("#000");
+    scene.background = new THREE.Color(0x000000);
     return scene;
   }
   function buildRender({ width, height }) {
@@ -27,7 +31,7 @@ export default canvas => {
       alpha: true
     });
     renderer.gammaInput = true;
-    renderer.gammaOutput = true; 
+    renderer.gammaOutput = true;
     const DPR = (window.devicePixelRatio) ? window.devicePixelRatio : 1;
     renderer.setPixelRatio(DPR);
     renderer.setSize(width, height);
@@ -39,16 +43,13 @@ export default canvas => {
     const sceneSubjects = [ 
       new GeneralLights(scene),
       new World(scene),
-      new Player(scene)
+      new Player(scene, camera)
     ];
     return sceneSubjects;
   }
   function update() {
     const elapsedTime = clock.getElapsedTime();
-    for(let i=0; i<sceneSubjects.length; i++) {
-      sceneSubjects[i].update(elapsedTime);
-    }
-
+    sceneSubjects.map(sceneObject => sceneObject.update(elapsedTime));
     renderer.render(scene, camera);
   }
   function onWindowResize() {
