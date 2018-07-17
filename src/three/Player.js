@@ -2,13 +2,22 @@ import * as THREE from 'three';
 
 export default function Player(scene, camera) {
 
+  const player = new THREE.Mesh(
+    new THREE.SphereGeometry(1, 32, 32),
+    new THREE.MeshStandardMaterial()
+  );
+
+  const axisHelper = new THREE.AxisHelper(5);
+  player.add(axisHelper);
+  scene.add(player);
+
   const geometry = new THREE.SphereGeometry(2, 32, 32);
   const material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
   const sphere = new THREE.Mesh(geometry, material);
-	sphere.position.set(0, 0, 48);
   sphere.castShadow = true; //default is false
   sphere.receiveShadow = true; //default
-  scene.add(sphere);
+
+  player.add(sphere);
 
   //camera.up = new THREE.Vector3(0, 0, 1);
   //camera.rotation.z = 0.25;
@@ -54,26 +63,19 @@ export default function Player(scene, camera) {
   };
 
   this.update = function(time) { 
-    /*sphere.rotation.x += 0.01;
-    sphere.rotation.y += 0.01;*/
+    //sphere.rotation.x += 1.01;
+    //sphere.rotation.y += 0.01;
 
-    angle += 0.01;
+    //angle += 0.01;
+
     latitude += 0.5;
     longitude += 1.5;
 
-    /*if (latitude >= 90 || latitude <= -90) {
-      const diff = latitude > 0 ? latitude - 90 : latitude + 90;
-      latitude = latitude * -1 - diff;
+    if (Math.abs(latitude) >= 180) {
+      latitude *= -1;
     }
-     if (longitude >= 180 || longitude <= -180) {
-      const diff = longitude > 0 ? longitude - 180 : longitude + 180;
-      longitude = longitude -1 - diff;
-    }*/
-    if (latitude >= 360) {
-      latitude = 0;
-    }
-    if (longitude >= 360) {
-      longitude = 0;
+    if (Math.abs(longitude) >= 180) {
+      longitude *= -1;
     }
 
     //console.log(latitude, longitude);
@@ -82,8 +84,7 @@ export default function Player(scene, camera) {
 //    sphere.position.z = Math.cos(angle) * radius;
     
     const target = calculateVector();
-    sphere.position.set(target.x, target.y, target.z);
-    //camera.position.set(target.x, target.y, target.z);
+    player.position.set(target.x, target.y, target.z);
 
     //sphere.rotation.y -= 0.01;
     //sphere.position.z = Math.cos(angle) * 48;
@@ -99,15 +100,26 @@ export default function Player(scene, camera) {
 //    camera.position.z = Math.cos(angle - 0.2) * radius;
 
     //console.log(sphere.position.x, sphere.position.y, sphere.position.z);
+
     /*camera.up = new THREE.Vector3(
       sphere.position.x === 0 ? 0 : sphere.position.x > 0 ? -1 : 1,
       sphere.position.y === 0 ? 0 : sphere.position.y > 0 ? -1 : 1,
       sphere.position.z === 0 ? 0 : sphere.position.z > 0 ? -1 : 1
     );*/
-    
-    camera.lookAt(new THREE.Vector3(0, 0, 0)); //sphere.position);
-    camera.position.set(0, 0, -200);
 
+
+    camera.position.set(0, 0, -100);
+    camera.up = new THREE.Vector3(0, 1, 0);
+    camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+/*
+    camera.position.set(target.x, target.y, target.z);
+
+    camera.up = new THREE.Vector3(
+      0, 1, 0
+    );
+    camera.lookAt(sphere.position);
+*/  
     //sphere.add(camera);
   }
 }
