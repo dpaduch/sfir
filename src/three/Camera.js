@@ -4,10 +4,10 @@ export default function Camera(center) {
   let handle = null;
   let camera = null;
   document.addEventListener('mousedown', e => {
-    handle = { 
+    /*handle = { 
       x: e.clientX, 
       y: e.clientY
-    };
+    };*/
   });
   let angleX = 0;
   let angleY = 0;
@@ -55,8 +55,8 @@ export default function Camera(center) {
     handle = null;
   });
   document.addEventListener('mousewheel', e => {
-    const pos = camera.position.sub(center);
-    pos.multiplyScalar(e.wheelDelta > 0 ? 0.9: 1.1).add(center);
+    //const pos = camera.position.sub(center);
+    //pos.multiplyScalar(e.wheelDelta > 0 ? 0.9: 1.1).add(center);
   }, false);
 
   this.build = function({ width, height }) {

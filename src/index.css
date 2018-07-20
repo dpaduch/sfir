@@ -7,6 +7,8 @@ body, html {
 #root, #scene {
   display: flex;
   align-content: stretch;
+  width: 100%;
+  height: 100%;
 }
 body {
   margin: 0;

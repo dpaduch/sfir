@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import Crosshair from './Crosshair';
 
 export default function Player(scene, camera) {
 
@@ -30,16 +31,29 @@ export default function Player(scene, camera) {
     new THREE.PointsMaterial( { size: 1, sizeAttenuation: false } );
   );*/
 
+  const pointerDefault = new THREE.Vector3(0, 6, 10);
+  const cameraDefaultPosition = new THREE.Vector3(0, 1, -9);
+
+  const pointer = (new THREE.Vector3()).copy(pointerDefault);
+
   camera.up = new THREE.Vector3(0, 1, 0);
-  camera.lookAt(new THREE.Vector3(0, 0, 4));
-  camera.position.set(0, 3, -6);
+  camera.position.copy(cameraDefaultPosition);
+  camera.lookAt(pointer);
   player.add(camera);
 
   //camera.up = new THREE.Vector3(0, 0, 1);
   //camera.rotation.z = 0.25;
 
+  const defaultCrosshairPosition = new THREE.Vector3(0, 0, -1);
+  const crosshair = (new Crosshair(scene)).element;
+  crosshair.position.copy(defaultCrosshairPosition);
+  camera.add(crosshair);
+  //scene.add(camera);
+  //crosshair
+
   let angle = 0;
   let handle = null;
+  
 
   const calculateVector = () => {
 
@@ -58,26 +72,48 @@ export default function Player(scene, camera) {
     //if (handle != null) {
       //const deltaX = (e.clientX - handle.x);
       //const deltaY = (e.clientY - handle.y);
-    const diff = e.clientX - (window.innerWidth / 2);
-    this.turn(diff / ((window.innerWidth - 80) / 2));
-    /*if (e.clientX < window.innerWidth / 2) {
-      
-    }
-    else {
-      this.turn(diff / ((window.innerWidth - 80) / 2));
-    }*/
-    //}
-    //handle = { x: e.clientX, y: e.clientY };
+    const diffX = e.clientX - (window.innerWidth / 2);
+    //console.log(camera.getFilmWidth() , diffX, diffX / ((window.innerWidth + 80) / 2));
+    this.turn(diffX / (window.innerWidth / 2));
+
+    const diffY = e.clientY - (window.innerHeight / 2);
+    this.aim(diffY / ((window.innerHeight - 80) / 2));
+  });
+
+  document.addEventListener('mouseout', e => {
+    player.rotation.y = 0;
+    pointer.copy(pointerDefault);
+    crosshair.position.copy(defaultCrosshairPosition);
+    camera.position.copy(cameraDefaultPosition);
+    camera.lookAt(pointer);
   });
 
   this.turn = (angle) => {
-    console.log(angle);
+    //console.log(angle, pointer.x, angle * 4);
+    const offset = (camera.getFilmWidth() / 2) * angle;
+    console.log(camera.getFilmWidth(), angle, offset);
+    pointer.setX(-offset);
+    camera.position.setX(offset * 0.25);
+    camera.lookAt(pointer);
+    crosshair.rotation.y = angle * -0.5;
+    crosshair.position.x = offset * 0.045;
+    sphere.rotation.y = -angle * 0.5;
+    sphere.rotation.z = angle * 0.5;
+  };
+
+  this.aim = (angle) => {
+    pointer.setY(pointerDefault.y + (angle + 1) * 4);
+    if (angle > 0) {
+      camera.position.setZ(cameraDefaultPosition.z + angle * 6);
+    }
+    camera.lookAt(pointer);
+    crosshair.position.y = angle * -0.5;
   };
 
   this.update = function(time) { 
 
     //player.lookAt(new THREE.Vector3(0, 0, 0));
-    //player.rotation.x = 0.5;
+    //sphere.rotation.x += 0.1;
     //player.rotation.z = 0.5;
     //player.rotation.x += 0.01;
     
@@ -86,10 +122,8 @@ export default function Player(scene, camera) {
 
     //angle += 0.01;
 
-    latitude -= 0.5;
+    //latitude -= 0.5;
     //longitude += 1.5;
-
-    player.rotation.x = -Math.abs((90 - latitude) / 90);
 
     if (Math.abs(latitude) >= 180) {
       latitude *= -1;
@@ -99,12 +133,13 @@ export default function Player(scene, camera) {
     }
 
     //console.log(latitude, longitude);
+    player.rotation.x = -Math.abs((90 - latitude) / 90);
 
 //    sphere.position.x = Math.sin(angle) * radius;
 //    sphere.position.z = Math.cos(angle) * radius;
     
     const target = calculateVector();
-    player.position.set(target.x, target.y, target.z);
+    //player.position.set(target.x, target.y, target.z);
 
     //sphere.rotation.y -= 0.01;
     //sphere.position.z = Math.cos(angle) * 48;
