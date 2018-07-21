@@ -63,7 +63,7 @@ export default function Camera(center) {
     const aspectRatio = width / height;
     const fieldOfView = 60;
     const nearPlane = 0.01;
-    const farPlane = 300;
+    const farPlane = 1000;
     camera = new THREE.PerspectiveCamera(fieldOfView, aspectRatio, nearPlane, farPlane);
 
     //camera.up = new THREE.Vector3(0, 0, 1);
