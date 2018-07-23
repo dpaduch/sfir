@@ -78,25 +78,36 @@ export default function Player(scene, camera) {
 
     this.turn(angle.x);
     this.aim(angle.y);
-
+/*
     const mouse = new THREE.Vector2();
     mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
     mouse.y = -(e.clientY / window.innerHeight) * 2 - 1;
 
-    var plane = new THREE.Plane(new THREE.Vector3(0, 0, -2));
+    var plane = new THREE.Plane();
     var raycaster = new THREE.Raycaster();
 
-    //var planeNormal = new THREE.Vector3();
-    //planeNormal.copy(camera.position).normalize();
-    //plane.setFromNormalAndCoplanarPoint(planeNormal, scene.position);
+    var planeNormal = new THREE.Vector3();
+    planeNormal.copy(camera.position).normalize();
+    plane.setFromNormalAndCoplanarPoint(planeNormal, scene.position);
 
     raycaster.setFromCamera(mouse, camera);
 
     var point = new THREE.Vector3();
-    raycaster.ray.intersectPlane(plane, point);
+    raycaster.ray.intersectPlane(plane, point);*/
 
-    crosshair.move(point);
-    //console.log(mouse.x, mouse.y, point.x, point.y, point.z);
+    var mouse3D = new THREE.Vector3(
+      e.clientX / window.innerWidth * 2 - 1, 
+      -e.clientY / window.innerHeight * 2 + 1,
+      -2);
+    mouse3D.unproject(camera);
+    mouse3D.sub(camera.position);
+    mouse3D.normalize(); 
+    var rayCaster = new THREE.Raycaster(camera.position, mouse3D);
+    var scale = 2;
+    var rayDir = new THREE.Vector3(rayCaster.ray.direction.x * scale, rayCaster.ray.direction.y * scale, rayCaster.ray.direction.z * scale);
+    var rayVector = new THREE.Vector3(camera.position.x + rayDir.x, camera.position.y + rayDir.y, camera.position.z + rayDir.z); 
+
+    crosshair.move(rayVector);
   });
 
   document.addEventListener('mouseout', e => {
@@ -106,7 +117,6 @@ export default function Player(scene, camera) {
     crosshair.reset();
     camera.position.copy(cameraDefaultPosition);
     camera.lookAt(pointer);
-
   });
 
   this.turn = (angle) => {

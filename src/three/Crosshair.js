@@ -34,7 +34,7 @@ export default function Crosshair() {
 
   this.move = (point) => {
     
-    const pos = new THREE.Vector3(-point.x, point.y + 3, point.z - radius);
+    const pos = new THREE.Vector3(point.x, point.y, point.z);
     console.log(pos.x, pos.y, pos.z);
     element.position.copy(pos);
 
