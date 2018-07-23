@@ -1,13 +1,41 @@
 import * as THREE from 'three';
 
 export default function Camera(center) {
+
+  let camera;
+  this.defaultPosition = new THREE.Vector3(0, 0, -10);
+
+  this.build = ({ width, height }) => {
+    camera = new THREE.PerspectiveCamera(60, width / height, 0.01, 1000);
+    return camera;
+  }
+
+  this.get = () => {
+    return camera;
+  }
+
+  this.updateScreenDimensions = ({ width,  height }) => {
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+  };
+
+  this.reset = () => {
+    camera.up = new THREE.Vector3(0, 1, 0);
+    camera.position.copy(this.defaultPosition);
+  }
+
+  this.getDistance = () => {
+    return camera.getFilmWidth() / 2;
+  }
+
+/*
   let handle = null;
   let camera = null;
   document.addEventListener('mousedown', e => {
-    /*handle = { 
+    handle = { 
       x: e.clientX, 
       y: e.clientY
-    };*/
+    };
   });
   let angleX = 0;
   let angleY = 0;
@@ -37,13 +65,13 @@ export default function Camera(center) {
       pos.y = radius * Math.sin(theta) * Math.sin(phi);
       pos.z = radius * Math.cos(theta);
 
-      /*if (deltaX != 0) {
+      if (deltaX != 0) {
         camera.position.x = Math.sin(angleX) * 100;
       }
       if (deltaY != 0) {
         camera.position.y = Math.sin(angleY) * 100;
       }
-      camera.position.z = Math.cos(angleX + angleY) * 100;*/
+      camera.position.z = Math.cos(angleX + angleY) * 100;
 
       //camera.position.add(center);
       camera.lookAt(center);
@@ -59,22 +87,5 @@ export default function Camera(center) {
     //pos.multiplyScalar(e.wheelDelta > 0 ? 0.9: 1.1).add(center);
   }, false);
 
-  this.build = function({ width, height }) {
-    const aspectRatio = width / height;
-    const fieldOfView = 60;
-    const nearPlane = 0.01;
-    const farPlane = 1000;
-    camera = new THREE.PerspectiveCamera(fieldOfView, aspectRatio, nearPlane, farPlane);
-
-    //camera.up = new THREE.Vector3(0, 0, 1);
-    //camera.position.set(0, 0, 100);
-
-    //camera.up = new THREE.Vector3(0, 0, 0);
-    /*camera.position.x = 0;
-    camera.position.y = 0;
-    camera.position.z = 100;
-    camera.lookAt(center);*/
-
-    return camera;
-  }
+  */
 }

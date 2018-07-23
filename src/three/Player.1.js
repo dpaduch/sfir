@@ -6,9 +6,9 @@ export default function Player(scene, camera) {
 
   let longitude = 90;
   let latitude = 0;
-  
+  let radius = 52;
 
-  this.render = () => {
+  this.buildPlayer = () => {
     const player = new THREE.Mesh(
       new THREE.BoxGeometry(1, 1, 1),
       new THREE.LineBasicMaterial({ color: 0xff0000 })
@@ -20,37 +20,32 @@ export default function Player(scene, camera) {
     const sphere = new THREE.Mesh(geometry, material);
     sphere.castShadow = true;
     sphere.receiveShadow = true;
+
     player.add(sphere);
 
-    player.add(new THREE.AxisHelper(5));
-
+    //const axisHelper = new THREE.AxisHelper(5);
+    //player.add(axisHelper);
     return player;
   };
 
-  const player = this.render();
-  player.position.set(0, 0, 0);
+  const player = this.buildPlayer();
+  player.position.set(0, 0, 10);
   scene.add(player);
 
-  player.add(camera.get());
+  const pointer = new Pointer();
+
+  const pointerDefault = new THREE.Vector3(0, 6, 10);
+  const pointer = (new THREE.Vector3()).copy(pointerDefault);
+
+  camera.stick(player);
+  camera.follow(pointer);
   camera.reset();
 
-  const pointer = new Pointer(camera);
-  pointer.control(player);
+  //camera.lookAt(pointer);
 
-  this.reset = () => {
-    camera.reset();
-    pointer.reset();
-    player.rotation.y = 0;
-  }
+  const crosshair = new Crosshair(scene);
+  crosshair.place(camera);
 
-  document.addEventListener('mouseout', e => {
-    this.reset();
-  });
-
-  /*const crosshair = new Crosshair(scene);
-  crosshair.place(camera);*/
-
-  let radius = 52;
   let angle = 0;
   let handle = null;
 
@@ -66,7 +61,7 @@ export default function Player(scene, camera) {
     return new THREE.Vector3(x, y, z);
   };
 
-  /*const mouse = new THREE.Vector2();
+  const mouse = new THREE.Vector2();
   
   var plane = new THREE.Mesh(
     new THREE.PlaneGeometry(20, 20), 
@@ -74,7 +69,7 @@ export default function Player(scene, camera) {
   scene.add(plane);
   plane.position.set(10, 10, -5);
 
-  const raycaster = new THREE.Raycaster();*/
+  const raycaster = new THREE.Raycaster();
 
   document.addEventListener('mousemove', e => {
 
@@ -90,6 +85,8 @@ export default function Player(scene, camera) {
       y: y / ((window.innerHeight - 80) / 2)
     }
 
+    this.turn(angle.x);
+    this.aim(angle.y);
 /*
     const mouse = new THREE.Vector2();
     mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
@@ -107,8 +104,8 @@ export default function Player(scene, camera) {
     var point = new THREE.Vector3();
     raycaster.ray.intersectPlane(plane, point);*/
 
-    //mouse.x = e.clientX / window.innerWidth * 2 - 1;
-    //mouse.y = -e.clientY / window.innerHeight * 2 + 1;
+    mouse.x = e.clientX / window.innerWidth * 2 - 1;
+    mouse.y = -e.clientY / window.innerHeight * 2 + 1;
 
     //mouse3D.unproject(camera);
     //mouse3D.sub(camera.position);
@@ -116,6 +113,38 @@ export default function Player(scene, camera) {
 
     //crosshair.move(rayVector);
   });
+
+  document.addEventListener('mouseout', e => {
+    player.rotation.y = 0;
+    pointer.copy(pointerDefault);
+
+    crosshair.reset();
+    camera.position.copy(cameraDefaultPosition);
+    camera.lookAt(pointer);
+  });
+
+  this.turn = (angle) => {
+
+    const distance = camera.getFilmWidth() / 2;
+    const offset = distance * angle;
+
+    pointer.setX(-offset);
+    camera.position.setX(offset * 0.25);
+    camera.lookAt(pointer);
+//    sphere.rotation.y = -angle * 0.5;
+//    sphere.rotation.z = angle * 0.5;
+  };
+
+  this.aim = (angle) => {
+    pointer.setY(pointerDefault.y + (angle + 1) * 4);
+    if (angle > 0) {
+      camera.position.setZ(cameraDefaultPosition.z + angle * 6);
+    }
+    else {
+      camera.position.setZ(cameraDefaultPosition.z - angle * 2);
+    }
+    camera.lookAt(pointer);
+  };
 
   this.update = function(time) { 
 
