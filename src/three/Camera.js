@@ -3,7 +3,7 @@ import * as THREE from 'three';
 export default function Camera(center) {
 
   let camera;
-  this.defaultPosition = new THREE.Vector3(0, 0, -10);
+  this.defaultPosition = new THREE.Vector3(0, 0, -9);
 
   this.build = ({ width, height }) => {
     camera = new THREE.PerspectiveCamera(60, width / height, 0.01, 1000);
@@ -12,6 +12,10 @@ export default function Camera(center) {
 
   this.get = () => {
     return camera;
+  }
+
+  this.follow = (object) => {
+    object.add(camera);
   }
 
   this.updateScreenDimensions = ({ width,  height }) => {

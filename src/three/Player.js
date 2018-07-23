@@ -4,9 +4,10 @@ import Crosshair from './Crosshair';
 
 export default function Player(scene, camera) {
 
-  let longitude = 90;
-  let latitude = 0;
-  
+  this.longitude = 90;
+  this.latitude = 0;
+  this.rotation = 0;
+  this.acceleration = 0;
 
   this.render = () => {
     const player = new THREE.Mesh(
@@ -14,41 +15,117 @@ export default function Player(scene, camera) {
       new THREE.LineBasicMaterial({ color: 0xff0000 })
     );
 
-    // skin
+    const texture = new THREE.TextureLoader().load("paper-blue.jpg");
     const geometry = new THREE.SphereGeometry(2, 32, 32);
-    const material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+    //const material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+    const bmap =  new THREE.TextureLoader().load("rock2.jpg");
+    const material = new THREE.MeshPhongMaterial({
+      shininess: 20,
+      bumpScale: 0.1,
+      map: texture,
+      bumpMap: bmap
+    });
     const sphere = new THREE.Mesh(geometry, material);
     sphere.castShadow = true;
     sphere.receiveShadow = true;
+    sphere.rotation.z = 2;
     player.add(sphere);
 
-    player.add(new THREE.AxisHelper(5));
+    player.sphere = sphere;
+    //player.add(new THREE.AxesHelper(5));
 
     return player;
   };
 
   const player = this.render();
-  player.position.set(0, 0, 0);
   scene.add(player);
 
-  player.add(camera.get());
+  camera.follow(player);
   camera.reset();
 
   const pointer = new Pointer(camera);
   pointer.control(player);
 
   this.reset = () => {
+    player.position.set(0, 0, 0);
+    player.rotation.y = 0;
     camera.reset();
     pointer.reset();
-    player.rotation.y = 0;
   }
+
+  this.turn = (side) => {
+    //this.rotation += side * 10;
+    this.turning && clearInterval(this.turning);
+    this.turning = setInterval(() => this.rotation += side * 10, 1);
+  }
+
+  this.accelerate = () => {
+    this.accelerating && clearInterval(this.accelerating);
+    if (this.acceleration >= 10) {
+      return;
+    }
+    this.accelerating = setInterval(() => this.acceleration++);
+  }
+
+  this.brake = () => {
+    if (this.acceleration <= 0) {
+      this.stop();
+      return;
+    }
+    this.accelerating && clearInterval(this.accelerating);
+    this.accelerating = setInterval(() => this.acceleration--);
+  }
+
+  this.stop = () => {
+    this.accelerating && clearInterval(this.accelerating);
+    this.acceleration = 0;
+  }
+
+  document.addEventListener('mousemove', e => {
+    const x = e.clientX - (window.innerWidth / 2);
+    const angle = window.innerWidth / 2;
+    const offset = camera.getDistance() * angle;
+  });
 
   document.addEventListener('mouseout', e => {
     this.reset();
   });
 
+  document.addEventListener('keydown', e => {
+    switch (e.keyCode) {
+      case 83:
+        this.brake();
+        break;
+      case 87:
+        this.accelerate();
+        break;
+      case 65:
+        this.turn(-1);
+        break;
+      case 68:
+        this.turn(1);
+        break;
+    }
+  });
+
+  document.addEventListener('keyup', e => {
+    if ((e.keyCode === 65 || e.keyCode === 68) && this.turning) {
+      clearInterval(this.turning);
+      this.turning = null;
+    }
+    if ((e.keyCode === 83 || e.keyCode === 87) && this.accelerating) {
+      clearInterval(this.accelerating);
+      this.accelerating = null;
+    }
+  });
+
+  this.update = () => {
+    player.sphere.rotation.x += 0.01 * this.acceleration;
+    player.rotation.y = this.rotation;
+  }
+
   /*const crosshair = new Crosshair(scene);
-  crosshair.place(camera);*/
+  crosshair.place(camera);
 
   let radius = 52;
   let angle = 0;
@@ -56,8 +133,8 @@ export default function Player(scene, camera) {
 
   const calculateVector = () => {
 
-    const phi = (90 - latitude) * (Math.PI / 180);
-    const theta = (longitude + 180) * (Math.PI / 180);
+    const phi = (90 - this.latitude) * (Math.PI / 180);
+    const theta = (this.longitude + 180) * (Math.PI / 180);
 
     const x = -((radius) * Math.sin(phi) * Math.cos(theta));
     const z = ((radius) * Math.sin(phi) * Math.sin(theta));
@@ -66,7 +143,7 @@ export default function Player(scene, camera) {
     return new THREE.Vector3(x, y, z);
   };
 
-  /*const mouse = new THREE.Vector2();
+  const mouse = new THREE.Vector2();
   
   var plane = new THREE.Mesh(
     new THREE.PlaneGeometry(20, 20), 
@@ -74,7 +151,7 @@ export default function Player(scene, camera) {
   scene.add(plane);
   plane.position.set(10, 10, -5);
 
-  const raycaster = new THREE.Raycaster();*/
+  const raycaster = new THREE.Raycaster();
 
   document.addEventListener('mousemove', e => {
 
@@ -90,7 +167,7 @@ export default function Player(scene, camera) {
       y: y / ((window.innerHeight - 80) / 2)
     }
 
-/*
+
     const mouse = new THREE.Vector2();
     mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
     mouse.y = -(e.clientY / window.innerHeight) * 2 - 1;
@@ -105,7 +182,7 @@ export default function Player(scene, camera) {
     raycaster.setFromCamera(mouse, camera);
 
     var point = new THREE.Vector3();
-    raycaster.ray.intersectPlane(plane, point);*/
+    raycaster.ray.intersectPlane(plane, point);
 
     //mouse.x = e.clientX / window.innerWidth * 2 - 1;
     //mouse.y = -e.clientY / window.innerHeight * 2 + 1;
@@ -167,18 +244,14 @@ export default function Player(scene, camera) {
       sphere.position.x === 0 ? 0 : sphere.position.x > 0 ? -1 : 1,
       sphere.position.y === 0 ? 0 : sphere.position.y > 0 ? -1 : 1,
       sphere.position.z === 0 ? 0 : sphere.position.z > 0 ? -1 : 1
-    );*/
-
-
-
-/*
+    );
     camera.position.set(target.x, target.y, target.z);
 
     camera.up = new THREE.Vector3(
       0, 1, 0
     );
     camera.lookAt(sphere.position);
-*/  
+
     //sphere.add(camera);
-  }
+  }*/
 }

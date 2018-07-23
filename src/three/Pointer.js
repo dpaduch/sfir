@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 export default function Pointer(camera) {
 
-  this.defaultPosition = new THREE.Vector3(0, 6, 10);
+  this.defaultPosition = new THREE.Vector3(0, 10, 10);
   const pointer = (new THREE.Vector3());
 
   this.reset = () => {
