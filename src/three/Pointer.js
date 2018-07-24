@@ -3,7 +3,7 @@ import * as THREE from 'three';
 export default function Pointer(camera) {
 
   this.defaultPosition = new THREE.Vector3(0, 10, 10);
-  const pointer = (new THREE.Vector3());
+  const pointer = new THREE.Vector3();
 
   this.reset = () => {
     pointer.copy(this.defaultPosition);
@@ -44,5 +44,6 @@ export default function Pointer(camera) {
   }
 
   this.control = (player) => {
+    player.add(pointer);
   }
 }

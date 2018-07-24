@@ -6,7 +6,7 @@ export default function Camera(center) {
   this.defaultPosition = new THREE.Vector3(0, 0, -9);
 
   this.build = ({ width, height }) => {
-    camera = new THREE.PerspectiveCamera(60, width / height, 0.01, 1000);
+    camera = new THREE.PerspectiveCamera(60, width / height, 0.01, 2000);
     return camera;
   }
 

@@ -4,8 +4,8 @@ import Crosshair from './Crosshair';
 
 export default function Player(scene, camera) {
 
-  this.longitude = 90;
-  this.latitude = 0;
+  this.longitude = 0;
+  this.latitude = -90;
   this.rotation = 0;
   this.acceleration = 0;
 
@@ -15,16 +15,16 @@ export default function Player(scene, camera) {
       new THREE.LineBasicMaterial({ color: 0xff0000 })
     );
 
-    const texture = new THREE.TextureLoader().load("paper-blue.jpg");
     const geometry = new THREE.SphereGeometry(2, 32, 32);
-    //const material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+    const material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+    /*const texture = new THREE.TextureLoader().load("paper-blue.jpg");
     const bmap =  new THREE.TextureLoader().load("rock2.jpg");
     const material = new THREE.MeshPhongMaterial({
       shininess: 20,
       bumpScale: 0.1,
       map: texture,
       bumpMap: bmap
-    });
+    });*/
     const sphere = new THREE.Mesh(geometry, material);
     sphere.castShadow = true;
     sphere.receiveShadow = true;
@@ -45,18 +45,27 @@ export default function Player(scene, camera) {
 
   const pointer = new Pointer(camera);
   pointer.control(player);
+  
+  let radius = 900 - 1.5;
 
   this.reset = () => {
     player.position.set(0, 0, 0);
-    player.rotation.y = 0;
+    player.rotation.set(0, 0, 0);
     camera.reset();
     pointer.reset();
   }
 
   this.turn = (side) => {
-    //this.rotation += side * 10;
     this.turning && clearInterval(this.turning);
-    this.turning = setInterval(() => this.rotation += side * 10, 1);
+    this.turning = setInterval(() => {
+      this.rotation += side * 2;
+      if (this.rotation >= 360) {
+        this.rotation = 0;
+      }
+      else if (this.rotation < 0) {
+        this.rotation = 360;
+      }
+    }, 1);
   }
 
   this.accelerate = () => {
@@ -119,29 +128,55 @@ export default function Player(scene, camera) {
     }
   });
 
+  const calculateVector = () => {
+  
+    const phi = (90 - this.latitude) * (Math.PI / 180);
+    const theta = (this.longitude + 90) * (Math.PI / 180);
+  
+    const x = -((radius) * Math.sin(phi) * Math.cos(theta));
+    const z = ((radius) * Math.sin(phi) * Math.sin(theta));
+    const y = ((radius) * Math.cos(phi));
+  
+    return new THREE.Vector3(x, y, z);
+  };
+
   this.update = () => {
+
+    if (this.acceleration > 0) {
+      let latAngle = (Math.abs(this.rotation - 180) - 90) / 90;
+      this.latitude += 0.001 * this.acceleration * latAngle;
+      let lonAngle = (Math.abs(this.rotation - 180) - 90) / 90;
+      this.longitude += 0.001 * this.acceleration * lonAngle;
+      console.log(this.rotation, latAngle, lonAngle);
+
+      /*this.latitude += 0.001 * this.acceleration;
+      if (this.rotation) {
+        this.longitude += 0.001 * this.rotation * this.acceleration;
+      }*/
+    }
+
     player.sphere.rotation.x += 0.01 * this.acceleration;
-    player.rotation.y = this.rotation;
+    player.rotation.y = (this.rotation / 360) * 6;
+
+    if (Math.abs(this.latitude) > 180) {
+      this.latitude *= -1;
+    }
+    if (Math.abs(this.longitude) > 180) {
+      this.longitude *= -1;
+    }
+
+    const target = calculateVector();
+    player.position.copy(target);
+
+    //player.rotation.x = -((180 + this.latitude) / 360) * 6 + 1.5;
+    //player.rotation.z = -((180 + this.longitude) / 360) * 6 + 3;
   }
 
   /*const crosshair = new Crosshair(scene);
   crosshair.place(camera);
 
-  let radius = 52;
   let angle = 0;
   let handle = null;
-
-  const calculateVector = () => {
-
-    const phi = (90 - this.latitude) * (Math.PI / 180);
-    const theta = (this.longitude + 180) * (Math.PI / 180);
-
-    const x = -((radius) * Math.sin(phi) * Math.cos(theta));
-    const z = ((radius) * Math.sin(phi) * Math.sin(theta));
-    const y = ((radius) * Math.cos(phi));
-
-    return new THREE.Vector3(x, y, z);
-  };
 
   const mouse = new THREE.Vector2();
   
