@@ -157,8 +157,6 @@ export default function Player(scene, camera) {
 
   this.update = () => {
 
-    this.rotation = 90;
-
     player.sphere.rotation.x += 0.01 * this.acceleration;
     tracker.rotation.y = -THREE.Math.degToRad(absoluteDegree(this.rotation));
     
@@ -166,8 +164,8 @@ export default function Player(scene, camera) {
     let latAngle = (Math.abs(angle - 90) / 90) * (angle > 90 ? -1 : 1);
     let lonAngle = (1 - Math.abs(latAngle)) * (this.rotation > 0 ? -1 : 1);
 
-    //tracker.rotation.x -= THREE.Math.degToRad(0.01 * this.acceleration * (latAngle / 2));
-    tracker.rotation.y += THREE.Math.degToRad(0.01 * this.acceleration * -lonAngle);
+    tracker.rotation.x -= THREE.Math.degToRad(0.01 * this.acceleration * latAngle);
+    tracker.rotation.z += THREE.Math.degToRad(0.01 * this.acceleration * lonAngle);
 
     console.log(
       angle,
