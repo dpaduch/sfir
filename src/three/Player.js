@@ -32,13 +32,21 @@ export default function Player(scene, camera) {
     player.add(sphere);
 
     player.sphere = sphere;
-    //player.add(new THREE.AxesHelper(5));
+    player.add(new THREE.AxesHelper(5));
 
     return player;
   };
 
+  //const tracker = new THREE.Vector3(0, 0, 0);
+  const tracker = new THREE.Mesh(
+    new THREE.BoxGeometry(1, 1, 1),
+    new THREE.LineBasicMaterial({ color: 0xff0000 })
+  );
+  scene.add(tracker);
+
   const player = this.render();
-  scene.add(player);
+  tracker.add(player);
+  //scene.add(player);
 
   camera.follow(player);
   camera.reset();
@@ -49,21 +57,23 @@ export default function Player(scene, camera) {
   let radius = 900 - 1.5;
 
   this.reset = () => {
-    player.position.set(0, 0, 0);
+    player.position.set(0, -radius, 0);
     player.rotation.set(0, 0, 0);
     camera.reset();
     pointer.reset();
   }
 
+  this.reset();
+
   this.turn = (side) => {
     this.turning && clearInterval(this.turning);
     this.turning = setInterval(() => {
-      this.rotation += side * 2;
-      if (this.rotation >= 360) {
-        this.rotation = 0;
+      this.rotation += side * 1;
+      if (this.rotation >= 180) {
+        this.rotation = -180;
       }
-      else if (this.rotation < 0) {
-        this.rotation = 360;
+      else if (this.rotation < -180) {
+        this.rotation = 180;
       }
     }, 1);
   }
@@ -125,6 +135,7 @@ export default function Player(scene, camera) {
     if ((e.keyCode === 83 || e.keyCode === 87) && this.accelerating) {
       clearInterval(this.accelerating);
       this.accelerating = null;
+      this.acceleration = 0;
     }
   });
 
@@ -139,24 +150,57 @@ export default function Player(scene, camera) {
   
     return new THREE.Vector3(x, y, z);
   };
+  
+  const absoluteDegree = (degree) => {
+    return degree >= 0 ? degree : (360 + degree);
+  };
 
   this.update = () => {
 
-    if (this.acceleration > 0) {
-      let latAngle = (Math.abs(this.rotation - 180) - 90) / 90;
-      this.latitude += 0.001 * this.acceleration * latAngle;
-      let lonAngle = (Math.abs(this.rotation - 180) - 90) / 90;
-      this.longitude += 0.001 * this.acceleration * lonAngle;
-      console.log(this.rotation, latAngle, lonAngle);
-
-      /*this.latitude += 0.001 * this.acceleration;
-      if (this.rotation) {
-        this.longitude += 0.001 * this.rotation * this.acceleration;
-      }*/
-    }
+    this.rotation = 90;
 
     player.sphere.rotation.x += 0.01 * this.acceleration;
-    player.rotation.y = (this.rotation / 360) * 6;
+    tracker.rotation.y = -THREE.Math.degToRad(absoluteDegree(this.rotation));
+    
+    const angle = Math.abs(this.rotation);
+    let latAngle = (Math.abs(angle - 90) / 90) * (angle > 90 ? -1 : 1);
+    let lonAngle = (1 - Math.abs(latAngle)) * (this.rotation > 0 ? -1 : 1);
+
+    //tracker.rotation.x -= THREE.Math.degToRad(0.01 * this.acceleration * (latAngle / 2));
+    tracker.rotation.y += THREE.Math.degToRad(0.01 * this.acceleration * -lonAngle);
+
+    console.log(
+      angle,
+      Math.round(latAngle * 100),
+      Math.round(lonAngle * 100),
+      tracker.rotation.x,
+      tracker.rotation.y,
+      tracker.rotation.z
+    );
+
+    /*if (this.acceleration > 0) {
+      const angle = Math.abs(this.rotation);
+      let latAngle = (Math.abs(angle - 90) / 90) * (angle > 90 ? -1 : 1);
+      tracker.rotation.x -= 0.001 * this.acceleration * latAngle;
+      let lonAngle = (1 - Math.abs(latAngle)) * (this.rotation > 0 ? -1 : 1);
+      tracker.rotation.z -= 0.01 * this.acceleration * lonAngle;
+      console.log(angle);
+    }*/
+
+  };
+
+  /*this.update = () => {
+    if (this.acceleration > 0) {
+      const angle = Math.abs(this.rotation);
+      let latAngle = (Math.abs(angle - 90) / 90) * (angle > 90 ? -1 : 1);
+      this.latitude += 0.001 * this.acceleration * latAngle;
+      let lonAngle = (1 - Math.abs(latAngle)) * (this.rotation > 0 ? -1 : 1);
+      this.longitude += 0.01 * this.acceleration * lonAngle;
+    }
+
+    console.log(this.acceleration, this.latitude);
+
+    player.sphere.rotation.x += 0.01 * this.acceleration;
 
     if (Math.abs(this.latitude) > 180) {
       this.latitude *= -1;
@@ -168,9 +212,11 @@ export default function Player(scene, camera) {
     const target = calculateVector();
     player.position.copy(target);
 
-    //player.rotation.x = -((180 + this.latitude) / 360) * 6 + 1.5;
+    player.rotation.x = -THREE.Math.degToRad(90 + absoluteDegree(this.latitude));
     //player.rotation.z = -((180 + this.longitude) / 360) * 6 + 3;
-  }
+
+    player.rotation.y = -THREE.Math.degToRad(absoluteDegree(this.rotation));
+  }*/
 
   /*const crosshair = new Crosshair(scene);
   crosshair.place(camera);

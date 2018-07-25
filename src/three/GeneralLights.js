@@ -9,7 +9,7 @@ export default function World(scene) {
   light.shadow.mapSize.width = 512;  // default
   light.shadow.mapSize.height = 512; // default
   light.shadow.camera.near = 0.5;       // default
-  light.shadow.camera.far = 500      // default
+  light.shadow.camera.far = 1500      // default
 
   light.castShadow = true;            // default false
 
