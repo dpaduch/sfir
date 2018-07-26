@@ -159,6 +159,14 @@ export default function Player(scene, camera) {
 
     trackX.rotation.x -= THREE.Math.degToRad(0.01 * this.acceleration * latAngle);
     trackY.rotation.y += THREE.Math.degToRad(0.01 * this.acceleration * lonAngle);
+
+    console.log(
+      this.rotation,
+      Math.round(latAngle * 100),
+      Math.round(lonAngle * 100),
+      THREE.Math.radToDeg(trackX.rotation.x), THREE.Math.radToDeg(trackX.rotation.y),
+      THREE.Math.radToDeg(trackX.rotation.y), THREE.Math.radToDeg(trackY.rotation.x)
+    )
   };
 
   /*const crosshair = new Crosshair(scene);
