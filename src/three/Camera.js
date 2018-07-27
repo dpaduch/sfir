@@ -3,7 +3,7 @@ import * as THREE from 'three';
 export default function Camera(center) {
 
   let camera;
-  this.defaultPosition = new THREE.Vector3(0, 0, -9);
+  this.defaultPosition = new THREE.Vector3(0, 100, -300);
 
   this.build = ({ width, height }) => {
     camera = new THREE.PerspectiveCamera(60, width / height, 0.01, 2000);

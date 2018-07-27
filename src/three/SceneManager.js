@@ -24,6 +24,8 @@ export default canvas => {
   function buildCamera() {
     const camera = new Camera(center);
     camera.build(canvas);
+    //camera.get().position.set(0, 0, -400);
+    //camera.get().lookAt(center);
     return camera;
   }
 
@@ -44,6 +46,8 @@ export default canvas => {
   }
 
   function createSceneSubjects(scene) {
+    //const c = new Camera(center);
+    //c.build(canvas);
     const sceneSubjects = [ 
       new GeneralLights(scene),
       new Player(scene, camera),

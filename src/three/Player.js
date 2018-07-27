@@ -16,7 +16,7 @@ export default function Player(scene, camera) {
     );
 
     const geometry = new THREE.SphereGeometry(2, 32, 32);
-    const material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+    const material = new THREE.MeshStandardMaterial({ color: 0xff0000, wireframe: true });
     /*const texture = new THREE.TextureLoader().load("paper-blue.jpg");
     const bmap =  new THREE.TextureLoader().load("rock2.jpg");
     const material = new THREE.MeshPhongMaterial({
@@ -69,34 +69,39 @@ export default function Player(scene, camera) {
 
   this.reset();
 
+  this.triggers = {};
+
+  this.trigger = (name, action, interval = 100) => {
+    this.triggers[name] && clearInterval(this.triggers[name]);
+    if (action() === false) {
+      return;
+    }
+    this.triggers[name] = setInterval(action, interval);
+  }
+
   this.turn = (side) => {
-    this.turning && clearInterval(this.turning);
-    this.turning = setInterval(() => {
-      this.rotation += side * 1;
-      if (this.rotation >= 180) {
-        this.rotation = -180;
-      }
-      else if (this.rotation < -180) {
-        this.rotation = 180;
-      }
-    }, 1);
+    this.rotation += side * 1;
+    if (this.rotation >= 180) {
+      this.rotation = -180;
+    }
+    else if (this.rotation < -180) {
+      this.rotation = 180;
+    }
   }
 
   this.accelerate = () => {
-    this.accelerating && clearInterval(this.accelerating);
     if (this.acceleration >= 10) {
-      return;
+      return false;
     }
-    this.accelerating = setInterval(() => this.acceleration++);
+    this.acceleration++
   }
 
   this.brake = () => {
     if (this.acceleration <= 0) {
       this.stop();
-      return;
+      return false;
     }
-    this.accelerating && clearInterval(this.accelerating);
-    this.accelerating = setInterval(() => this.acceleration--);
+    this.acceleration--;
   }
 
   this.stop = () => {
@@ -117,16 +122,16 @@ export default function Player(scene, camera) {
   document.addEventListener('keydown', e => {
     switch (e.keyCode) {
       case 83:
-        this.brake();
+        this.trigger('accelerate', this.brake);
         break;
       case 87:
-        this.accelerate();
+        this.trigger('accelerate', this.accelerate);
         break;
       case 65:
-        this.turn(-1);
+        this.trigger('turn', () => this.turn(-45), 500);
         break;
       case 68:
-        this.turn(1);
+        this.trigger('turn', () => this.turn(45), 500);
         break;
       default:
         break;
@@ -134,9 +139,9 @@ export default function Player(scene, camera) {
   });
 
   document.addEventListener('keyup', e => {
-    if ((e.keyCode === 65 || e.keyCode === 68) && this.turning) {
-      clearInterval(this.turning);
-      this.turning = null;
+    if ((e.keyCode === 65 || e.keyCode === 68) && this.triggers['turn']) {
+      clearInterval(this.triggers['turn']);
+      delete this.triggers['turn'];
     }
     if ((e.keyCode === 83 || e.keyCode === 87) && this.accelerating) {
       clearInterval(this.accelerating);
@@ -148,24 +153,37 @@ export default function Player(scene, camera) {
     return degree >= 0 ? degree : (360 + degree);
   };
 
+  this.lat = 0;
+  this.lon = 0;
+
   this.update = () => {
 
-    player.sphere.rotation.x += 0.01 * this.acceleration;
+    //player.sphere.rotation.x += 0.01 * this.acceleration;
     player.rotation.y = -THREE.Math.degToRad(absoluteDegree(this.rotation));
-    
+
     const angle = Math.abs(this.rotation);
     let latAngle = (Math.abs(angle - 90) / 90) * (angle > 90 ? -1 : 1);
     let lonAngle = (1 - Math.abs(latAngle)) * (this.rotation > 0 ? -1 : 1);
 
-    trackX.rotation.x -= THREE.Math.degToRad(0.01 * this.acceleration * latAngle);
-    trackY.rotation.y += THREE.Math.degToRad(0.01 * this.acceleration * lonAngle);
+    this.lat += 0.01 * this.acceleration * latAngle;
+    this.lon += 0.01 * this.acceleration * lonAngle;
+
+    if (this.lat >= 360) {
+      this.lat = 0;
+    }
+    if (this.lon >= 360) {
+      this.lon = 0;
+    }
+
+    trackX.rotation.x = -THREE.Math.degToRad(absoluteDegree(this.lat));
+    trackY.rotation.y = THREE.Math.degToRad(absoluteDegree(this.lon));
 
     console.log(
       this.rotation,
       Math.round(latAngle * 100),
       Math.round(lonAngle * 100),
-      THREE.Math.radToDeg(trackX.rotation.x), THREE.Math.radToDeg(trackX.rotation.y),
-      THREE.Math.radToDeg(trackX.rotation.y), THREE.Math.radToDeg(trackY.rotation.x)
+      0.01 * this.acceleration * latAngle, '/', this.lat,
+      0.01 * this.acceleration * lonAngle, '/', this.lon
     )
   };
 
